@@ -14,55 +14,8 @@ library(readxl)
 library(writexl)
 ```
 
-
-
-
-todos_ficheros <- list.files("entregas_descomprimidas", recursive = TRUE, full.names = TRUE)
-
-ficheros_puntos <- list.files("entregas_descomprimidas", pattern = "(?i)puntos.*\\.txt$", 
-                              recursive = TRUE, full.names = TRUE)
-ficheros_justificante <- list.files("entregas_descomprimidas", pattern = "(?i)(justificante|certificado).*\\.(pdf|png|jpg)$", 
-                                    recursive = TRUE, full.names = TRUE)
-
-# 3. Procesar información para el data frame
-resultados <- lapply(ficheros_puntos, function(ruta) {
-  # Extraer apellidos: asumiendo que la carpeta tiene el nombre del alumno
-  partes <- unlist(strsplit(ruta, "/"))
-  carpeta_alumno <- partes[2] 
-  apellidos <- unlist(strsplit(carpeta_alumno, "_"))[1] # Ajustar según formato real
-  
-  # Leer contenido
-  contenido <- readLines(ruta, warn = FALSE)[1]
-  nombre_archivo <- basename(ruta)
-  
-  # Extraer número de puntos (numérico)
-  puntos_num <- as.numeric(gsub("[^0-9]", "", contenido))
-  
-  data.frame(
-    apellidos = apellidos,
-    puntos = puntos_num,
-    NomFile = nombre_archivo,
-    Puntos_Texto = contenido,
-    stringsAsFactors = FALSE
-  )
-})
-
-evalua_df <- do.call(rbind, resultados)
-
-# 4. Ordenar y Guardar primer Excel
-evalua_df <- evalua_df[order(evalua_df$apellidos), ]
-write_xlsx(evalua_df, "NotasRIntermedio.xlsx")
-
-# 5. Combinar con Alumnos Matriculados
-# Ajusta el nombre del fichero de alumnos al que tengas
-alumnos_repo <- read_excel("AlumnosTDXX_XX.xlsx") 
-
-# Combinación (Merge). Nota: 'by' debe ser la columna común, ej. "apellidos"
-alumnos_notas <- merge(alumnos_repo, evalua_df, by = "apellidos", all.x = TRUE)
-
-write_xlsx(alumnos_notas, "AlumnosNotas.xlsx")
-
-# Respuestas rápidas para tu informe:
-# Variantes de nombres: 
-variantes <- unique(basename(ficheros_puntos))
-print(paste("Variantes encontradas:", length(variantes)))
+```{r}
+unzip("entregas.zip", exdir = "carpetas")
+rutas_puntos <- list.files("carpetas", pattern = "puntos", recursive = TRUE, full.names = TRUE)
+rutas_justificantes <- list.files("carpetas", pattern = "justificante|certificado", recursive = TRUE, full.names = TRUE)
+```
