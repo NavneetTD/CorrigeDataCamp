@@ -14,8 +14,29 @@ library(readxl)
 library(writexl)
 ```
 
+# Descomprimos la carpeta
 ```{r}
 unzip("entregas.zip", exdir = "carpetas")
 rutas_puntos <- list.files("carpetas", pattern = "puntos", recursive = TRUE, full.names = TRUE)
 rutas_justificantes <- list.files("carpetas", pattern = "justificante|certificado", recursive = TRUE, full.names = TRUE)
+```
+
+# Extraemos los datos para el Data Frame
+```{r}
+datos <- lapply(rutas_puntos, function(ruta) {
+  partes <- unlist(strsplit(ruta, "/"))
+  apellido <- unlist(strsplit(partes[2], "_"))[1] # Cogemos el apellido de la carpeta
+  contenido <- readLines(ruta, warn = FALSE)[1]
+  
+  data.frame(
+    apellidos = apellido,
+    puntos = as.numeric(gsub("[^0-9]", "", contenido)), # Para que solo sean numeros
+    NomFile = basename(ruta),
+    Puntos = contenido,
+    stringsAsFactors = FALSE
+  )
+})
+
+evalua_df <- do.call(rbind, datos)
+evalua_df <- evalua_df[order(evalua_df$apellidos), ] # Ordenamos
 ```
